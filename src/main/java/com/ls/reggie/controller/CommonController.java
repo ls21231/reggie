@@ -1,4 +1,4 @@
-package com.ls.reggie.config;
+package com.ls.reggie.controller;
 
 import com.ls.reggie.common.R;
 import lombok.extern.slf4j.Slf4j;

@@ -8,6 +8,8 @@ import com.ls.reggie.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 分类的控制类
  * @ls
@@ -79,5 +81,27 @@ public class CategoryController {
     public R<String> update(@RequestBody Category category) {
         categoryService.updateById(category);
         return R.success("分类信息修改成功");
+    }
+
+
+    /**
+     * 添加菜品时将菜品的分裂展示给页面
+     * @param category
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Category>> list(Category category){
+
+        // 构造条件查询器
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+
+        // 查找相应的菜品
+        queryWrapper.eq(category.getType() != null,Category::getType,category.getType());
+
+        // 对数据进行排序
+        queryWrapper.orderByAsc(Category::getSort).orderByDesc(Category::getUpdateTime);
+
+        List<Category> list = categoryService.list(queryWrapper);
+        return R.success(list);
     }
 }
