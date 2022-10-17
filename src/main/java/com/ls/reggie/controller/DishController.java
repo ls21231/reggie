@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ls.reggie.common.R;
 import com.ls.reggie.dto.DishDto;
+import com.ls.reggie.dto.SetmealDto;
 import com.ls.reggie.entity.Category;
 import com.ls.reggie.entity.Dish;
 import com.ls.reggie.service.CategoryService;
@@ -59,7 +60,7 @@ public class DishController {
      */
 
     @GetMapping("/page")
-    public R<Page> list(int page,int pageSize,String name) {
+    public R<Page> page(int page,int pageSize,String name) {
 
         Page<Dish> pageInfo = new Page<>(page,pageSize);
         Page<DishDto> dishDtoPage = new Page<>();
@@ -99,6 +100,11 @@ public class DishController {
     }
 
 
+    /**
+     * 查询某个菜品，从数据库中拿到基本数据和口味数据
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
     public R<DishDto> getDishById(@PathVariable Long id){
         DishDto dishWithFlavor = dishService.getDishWithFlavor(id);
@@ -116,4 +122,22 @@ public class DishController {
         dishService.updateWithFlavor(dishDto);
         return R.success("菜品修改成功");
     }
+
+
+    @GetMapping("/list")
+    public R<List<Dish>> list(Dish dish){
+
+        // 查询相应的数据，并进行排序
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dish::getCategoryId,dish.getCategoryId());
+        queryWrapper.eq(Dish::getStatus,1);
+        queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
+
+        List<Dish> list = dishService.list(queryWrapper);
+
+        return R.success(list);
+    }
+
+
+
 }

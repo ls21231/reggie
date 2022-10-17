@@ -43,7 +43,9 @@ public class LoginCheckFilter implements Filter {
                 "/employee/logout",
                 "/backend/**",
                 "/front/**",
-                "/common/**"
+                "/common/**",
+                "/user/sendMsg",
+                "/user/login"
         };
 
         // 2. 判断本次请求是否需要处理
@@ -60,6 +62,15 @@ public class LoginCheckFilter implements Filter {
 
         if(httpServletRequest.getSession().getAttribute("employee") != null){
             Long id = (Long) httpServletRequest.getSession().getAttribute("employee");
+            log.info("本次请求已登陆，用户的id为" + id);
+            BaseContext.setCurrentId(id);
+            chain.doFilter(httpServletRequest,httpServletResponse);
+            return;
+        }
+
+
+        if(httpServletRequest.getSession().getAttribute("user") != null){
+            Long id = (Long) httpServletRequest.getSession().getAttribute("user");
             log.info("本次请求已登陆，用户的id为" + id);
             BaseContext.setCurrentId(id);
             chain.doFilter(httpServletRequest,httpServletResponse);
