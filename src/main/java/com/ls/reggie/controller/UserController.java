@@ -8,10 +8,12 @@ import com.ls.reggie.utils.ValidateCodeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @ls
@@ -25,6 +27,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 发送验证吗，模拟
@@ -44,8 +49,11 @@ public class UserController {
             //
             log.info("code = " + code);
 
-            // 将验证码存储到Session
-            session.setAttribute(phone,code);
+//            // 将验证码存储到Session
+//            session.setAttribute(phone,code);
+
+            // 将验证码缓存到redis中
+            redisTemplate.opsForValue().set(phone,code,5, TimeUnit.MINUTES);
             return R.success("短信发送成功");
         }
         return R.error("短信发送失败");
@@ -59,8 +67,13 @@ public class UserController {
         String phone = map.get("phone").toString();
         // 获取验证码
         String code = map.get("code").toString();
-        // 从session中获取保存的验证码
-        String codeInSession = session.getAttribute(phone).toString();
+
+//        // 从session中获取保存的验证码
+//        String codeInSession = session.getAttribute(phone).toString();
+
+        // 从redis缓存中获取验证码
+        String codeInSession = (String) redisTemplate.opsForValue().get(phone);
+
         // 进行验证码的比对
         if(codeInSession != null && codeInSession.equals(code)){
             // 如果比对成功，说明登录成功
@@ -74,6 +87,9 @@ public class UserController {
                 userService.save(user);
             }
             session.setAttribute("user",user.getId());
+
+            // 此时已经登录成功，将缓存中的验证码删除掉
+            redisTemplate.delete(phone);
             return R.success(user);
         }
 

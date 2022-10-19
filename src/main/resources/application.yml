@@ -7,6 +7,7 @@ spring:
     host: 192.168.111.100
     port: 6379
     database: 0
+    password: 123456
   datasource:
     druid:
       driver-class-name: com.mysql.cj.jdbc.Driver
